@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  base: '/token-distribution-tool/',   // ← add this line
+  base: "/",               // important for correct asset URLs on Vercel
+  build: { outDir: "dist" }
 });
