@@ -8,8 +8,9 @@
     "build": "node node_modules/vite/bin/vite.js build",
     "preview": "vite preview --port 3000"
   },
-  "engines": { "node": ">=18 <21" }
-  ,
+  "engines": {
+    "node": ">=18 <21"
+  },
   "dependencies": {
     "ag-grid-community": "^31.2.1",
     "ag-grid-react": "^31.2.1",
@@ -19,6 +20,8 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@types/big.js": "^6.2.2",
+    "@types/papaparse": "^5.3.16",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
