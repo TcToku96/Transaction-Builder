@@ -1,0 +1,5 @@
+{
+  "installCommand": "npm ci && npm i --no-save @rollup/rollup-linux-x64-gnu",
+  "buildCommand": "node node_modules/vite/bin/vite.js build",
+  "outputDirectory": "dist"
+}
