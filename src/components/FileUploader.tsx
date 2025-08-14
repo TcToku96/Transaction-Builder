@@ -4,8 +4,8 @@ import React, { useId, useRef } from "react";
 type Props = {
   label?: string;
   accept?: string;              // default ".csv"
-  onFile: (file: File) => void; // parent handles parsing (Papa, etc.)
-  id?: string;                  // optional override if you want a stable id
+  onFile: (file: File) => void; // parent handles parsing / state
+  id?: string;                  // optional override for testability
   className?: string;
   disabled?: boolean;
 };
@@ -19,17 +19,14 @@ export default function FileUploader({
   disabled,
 }: Props) {
   const ref = useRef<HTMLInputElement>(null);
-  const autoId = useId();                      // unique per instance (avoids id collisions)
+  const autoId = useId(); // unique per instance
   const inputId = id ?? `file-uploader-${autoId}`;
-
-  const open = () => ref.current?.click();
 
   const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
     if (file) onFile(file);
-    // Important: clear value so picking the same file later re-triggers onChange
+    // Clear so picking the same file later fires onChange again
     e.currentTarget.value = "";
-    // DO NOT call ref.current?.click() here—this is what causes the re-open.
   };
 
   return (
@@ -41,11 +38,26 @@ export default function FileUploader({
         accept={accept}
         onChange={handleChange}
         hidden
-        // Never attach onClick to the input itself
+        // important: no onClick here
       />
-      <button type="button" onClick={open} disabled={disabled}>
+      {/* Use label to open the native picker; no programmatic click */}
+      <label
+        htmlFor={inputId}
+        className="inline-flex items-center justify-center px-4 py-2 rounded bg-blue-600 text-white cursor-pointer disabled:opacity-40"
+        onClick={(e) => {
+          // hard guard against any outer click handlers
+          e.preventDefault();
+          e.stopPropagation();
+          if (!disabled) {
+            // forward to the input natively via label->htmlFor
+            // no .click() call needed (prevents double-open)
+            (e.currentTarget.ownerDocument?.getElementById(inputId) as HTMLInputElement)?.click();
+          }
+        }}
+        aria-disabled={disabled || undefined}
+      >
         {label}
-      </button>
+      </label>
     </div>
   );
 }
