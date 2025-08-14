@@ -2,7 +2,7 @@
 import React from "react";
 
 type Props = {
-  label?: string;               // text shown on the file button
+  label?: string;               // shown next to the input
   accept?: string;              // default ".csv"
   onFile: (file: File) => void; // parent parses/handles the file
   className?: string;
@@ -16,21 +16,19 @@ export default function FileUploader({
   className,
   disabled,
 }: Props) {
-  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+  const onChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files?.[0];
-    if (file) onFile(file);
-    // Clear so selecting the same file again re-fires onChange
-    e.currentTarget.value = "";
+    if (file) onFile(file); // don't clear e.target.value here
   };
 
   return (
     <div className={className}>
+      <label className="block text-sm mb-1">{label}</label>
       <input
         type="file"
         accept={accept}
-        onChange={handleChange}
+        onChange={onChange}
         disabled={disabled}
-        // Native file input (visible). No label, no programmatic click.
         className="
           block text-sm
           file:mr-4 file:rounded file:border-0
@@ -39,8 +37,11 @@ export default function FileUploader({
           file:cursor-pointer
           disabled:opacity-40
         "
+        onClick={(e) => {
+          // hard-stop any ancestor click logic from firing a second time
+          e.stopPropagation();
+        }}
       />
-      {/* Optional helper text */}
       <p className="mt-1 text-xs opacity-70">Accepted: {accept}</p>
     </div>
   );
