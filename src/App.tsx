@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import StepWrapper from './components/StepWrapper';
-import FileUploader from './components/FileUploader';
-import GrantBucketSelector, { BucketMap } from './components/GrantBucketSelector';
-import WithheldToggle from './components/WithheldToggle';
-import { buildAll, toCsv, splitByBatch } from './utils/csvUtils';
+// src/App.tsx
+import React, { useState } from "react";
+import StepWrapper from "./components/StepWrapper";
+import FileUploader from "./components/FileUploader";
+import GrantBucketSelector, { BucketMap } from "./components/GrantBucketSelector";
+import WithheldToggle from "./components/WithheldToggle";
+import { buildAll, toCsv, splitByBatch } from "./utils/csvUtils";
 
 /* download helper */
 function dl(csv: string, name: string) {
-  const blob = new Blob([csv], { type: 'text/csv' });
+  const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = name;
   a.click();
@@ -26,12 +27,12 @@ export default function App() {
 
   /* withheld-token feature */
   const [withheld, setWithheld] = useState(false);
-  const [withheldDest, setWithheldDest] = useState('');
+  const [withheldDest, setWithheldDest] = useState("");
 
   /* outputs */
   const [batchFiles, setBatch] = useState<{ name: string; csv: string }[]>([]);
   const [withheldFile, setWithheldFile] = useState<{ name: string; csv: string } | null>(null);
-  const [reportCsv, setReport] = useState('');
+  const [reportCsv, setReport] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
 
   /* build button */
@@ -45,26 +46,25 @@ export default function App() {
 
     /* group NET txs by batch label */
     const batchFor = (gId: string) =>
-      bucketMap[reportRows.find((r) => r.grantId === gId)!.grantType] ??
-      'Unbatched';
+      bucketMap[reportRows.find((r) => r.grantId === gId)!.grantType] ?? "Unbatched";
 
     const grouped = splitByBatch(
-      transactions.filter((t) => t.kind === 'NET'),
-      batchFor,
+      transactions.filter((t) => t.kind === "NET"),
+      batchFor
     );
 
     setBatch(
       Object.entries(grouped).map(([label, rows]) => ({
         name: `transactions_Batch${label}.csv`,
         csv: toCsv(rows),
-      })),
+      }))
     );
 
     /* withheld file (single) */
     if (withheld) {
-      const wRows = transactions.filter((t) => t.kind === 'WITHHOLD');
+      const wRows = transactions.filter((t) => t.kind === "WITHHOLD");
       setWithheldFile({
-        name: 'withheld_tokens.csv',
+        name: "withheld_tokens.csv",
         csv: toCsv(wRows),
       });
     } else {
@@ -73,55 +73,44 @@ export default function App() {
 
     /* report & errors */
     setReport(toCsv(reportRows));
-    setErrors(
-      reportRows
-        .filter((r) => r.errors)
-        .map((r) => `Grant ${r.grantId}: ${r.errors}`),
-    );
+    setErrors(reportRows.filter((r) => r.errors).map((r) => `Grant ${r.grantId}: ${r.errors}`));
   };
 
   return (
     <div className="max-w-5xl mx-auto p-8 space-y-8">
-      <h1 className="text-2xl font-bold">
-        Token Distribution Transaction Builder
-      </h1>
+      <h1 className="text-2xl font-bold">Token Distribution Transaction Builder</h1>
 
       {/* STEP 1 */}
       <StepWrapper title="Step 1: Upload Release_Tax_Details CSV">
         <FileUploader
-          label="Click or drag & drop Release_Tax_Details CSV"
+          label="Upload Release_Tax_Details CSV"
           onFile={async (file) => {
             setGrantFile(file);
 
             /* auto-extract grant-types for batch map */
             const txt = await file.text();
             const [hdr, ...data] = txt.split(/\r?\n/).filter(Boolean);
-            const idx = hdr.toLowerCase().split(',').indexOf('grant type');
+            const idx = hdr.toLowerCase().split(",").indexOf("grant type");
             if (idx === -1) return;
+
             const types = new Set<string>();
             data.forEach((l) => {
-              const cells = l.split(',');
+              const cells = l.split(",");
               if (cells[idx]) types.add(cells[idx]);
             });
+
             const init: BucketMap = {};
-            types.forEach((t) => (init[t] = '1'));
+            types.forEach((t) => (init[t] = "1"));
             setBucketMap(init);
           }}
         />
-        {grantFile && (
-          <p className="mt-2 text-sm text-green-700">{grantFile.name}</p>
-        )}
+        {grantFile && <p className="mt-2 text-sm text-green-700">{grantFile.name}</p>}
       </StepWrapper>
 
       {/* STEP 2 */}
       <StepWrapper title="Step 2: Upload Safe Balances - Wallet View CSV">
-        <FileUploader
-          label="Click or drag & drop Wallet View CSV"
-          onFile={setSafeFile}
-        />
-        {safeFile && (
-          <p className="mt-2 text-sm text-green-700">{safeFile.name}</p>
-        )}
+        <FileUploader label="Upload Wallet View CSV" onFile={setSafeFile} />
+        {safeFile && <p className="mt-2 text-sm text-green-700">{safeFile.name}</p>}
       </StepWrapper>
 
       {/* STEP 3 */}
@@ -173,7 +162,7 @@ export default function App() {
             {withheldFile && (
               <button
                 className="px-4 py-2 rounded bg-green-600 text-white"
-                onClick={() => dl(withheldFile.csv, withheldFile.name)}
+                onClick={() => dl(withheldFile!.csv, withheldFile!.name)}
               >
                 {withheldFile.name}
               </button>
@@ -182,7 +171,7 @@ export default function App() {
 
           <button
             className="px-4 py-2 rounded bg-purple-600 text-white"
-            onClick={() => dl(reportCsv, 'distribution_report.csv')}
+            onClick={() => dl(reportCsv, "distribution_report.csv")}
           >
             Download Distribution Report CSV
           </button>
